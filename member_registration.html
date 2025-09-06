@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Church Member Registration Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .step { display: none; }
+        .step.active { display: block; }
+        .preview-container {
+            width: 250px;
+            height: 250px;
+            overflow: hidden;
+            border: 2px dashed #ddd;
+            border-radius: 0.5rem;
+        }
+        #imageToCrop {
+            max-width: 100%;
+            display: block;
+        }
+        .cropper-view-box, .cropper-face {
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <div class="container mx-auto p-4 sm:p-8 max-w-2xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-slate-700">Church Member Registration Portal</h1>
+            <p class="text-slate-600 mt-2">A secure and private way to pre-register for our new check-in system.</p>
+        </header>
+
+        <!-- Security Notice -->
+        <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md mb-8" role="alert">
+            <p class="font-bold">Privacy Guaranteed</p>
+            <p>All information and photo processing happens directly on your device. No data is uploaded or stored online.</p>
+        </div>
+        
+        <div id="registrationForm" class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
+            <!-- Progress Bar -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between">
+                    <div id="step-indicator-1" class="step-indicator active w-1/3 text-center">
+                        <div class="w-10 h-10 mx-auto bg-blue-500 text-white rounded-full text-lg flex items-center justify-center">1</div>
+                        <p class="text-xs mt-2 font-semibold">Details</p>
+                    </div>
+                    <div class="flex-auto border-t-2 transition duration-500 ease-in-out border-gray-300"></div>
+                    <div id="step-indicator-2" class="step-indicator w-1/3 text-center">
+                        <div class="w-10 h-10 mx-auto bg-gray-300 rounded-full text-lg flex items-center justify-center">2</div>
+                        <p class="text-xs mt-2 text-gray-500">Photo</p>
+                    </div>
+                    <div class="flex-auto border-t-2 transition duration-500 ease-in-out border-gray-300"></div>
+                    <div id="step-indicator-3" class="step-indicator w-1/3 text-center">
+                        <div class="w-10 h-10 mx-auto bg-gray-300 rounded-full text-lg flex items-center justify-center">3</div>
+                        <p class="text-xs mt-2 text-gray-500">Finish</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 1: Personal Details -->
+            <div id="step-1" class="step active">
+                <h2 class="text-2xl font-semibold mb-6 text-center">Step 1: Your Details</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="fullName" class="block text-sm font-medium text-gray-700">Full Name*</label>
+                        <input type="text" id="fullName" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., John Smith">
+                        <p id="fullNameError" class="text-red-500 text-xs mt-1 hidden">Full Name is required.</p>
+                    </div>
+                    <div>
+                        <label for="membershipStatus" class="block text-sm font-medium text-gray-700">Membership Status*</label>
+                        <select id="membershipStatus" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <option>Member</option>
+                            <option>Regular Attendee</option>
+                            <option>Visitor</option>
+                            <option>Newcomer</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-end">
+                    <button onclick="nextStep(1)" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">Next &rarr;</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Photo Upload & Crop -->
+            <div id="step-2" class="step">
+                <h2 class="text-2xl font-semibold mb-4 text-center">Step 2: Upload Your Photo</h2>
+                <div class="text-center bg-gray-50 p-4 rounded-lg mb-4">
+                    <p class="text-sm font-medium text-gray-600">Photo Requirements:</p>
+                    <ul class="text-xs text-gray-500 list-disc list-inside text-left mx-auto max-w-xs">
+                        <li>Clear, front-facing photo</li>
+                        <li>No sunglasses or hats</li>
+                        <li>Neutral background preferred</li>
+                    </ul>
+                </div>
+                <div class="flex flex-col items-center">
+                    <input type="file" id="imageInput" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mb-4">
+                     <p id="imageError" class="text-red-500 text-xs mb-2 hidden">Please select an image file.</p>
+                    <div id="cropper-container" class="hidden w-full max-w-md">
+                        <img id="imageToCrop" src="">
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-between">
+                    <button onclick="prevStep(2)" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">&larr; Back</button>
+                    <button onclick="nextStep(2)" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">Next &rarr;</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Confirmation and Download -->
+            <div id="step-3" class="step">
+                <h2 class="text-2xl font-semibold mb-6 text-center">Step 3: Confirm and Finish</h2>
+                 <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-md mb-6" role="alert">
+                    <p class="font-bold">Administrator Action</p>
+                    <p>Please download the prepared image file and copy the member's details into the master spreadsheet.</p>
+                </div>
+                <div class="flex flex-col sm:flex-row items-center sm:items-start space-y-6 sm:space-y-0 sm:space-x-8">
+                    <div class="text-center">
+                        <p class="font-bold mb-2">Formatted Photo</p>
+                        <div id="preview" class="preview-container mx-auto bg-gray-200 flex items-center justify-center"></div>
+                        <a id="downloadButton" href="#" class="mt-4 inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">Download Image</a>
+                    </div>
+                    <div class="w-full">
+                        <p class="font-bold mb-2 text-center sm:text-left">Member Details</p>
+                        <div class="bg-gray-50 p-4 rounded-lg space-y-2 border">
+                            <div><strong>Full Name:</strong> <span id="confirmName"></span></div>
+                            <div><strong>Membership:</strong> <span id="confirmStatus"></span></div>
+                            <div><strong>Generated Filename:</strong> <span id="confirmFilename" class="text-sm text-gray-600 break-all"></span></div>
+                        </div>
+                    </div>
+                </div>
+                 <div class="mt-8 flex justify-between">
+                    <button onclick="prevStep(3)" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">&larr; Back</button>
+                    <button onclick="startOver()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">Register New Member</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let cropper;
+        const formData = {};
+
+        const imageInput = document.getElementById('imageInput');
+        const imageToCrop = document.getElementById('imageToCrop');
+        const cropperContainer = document.getElementById('cropper-container');
+
+        imageInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    imageToCrop.src = reader.result;
+                    cropperContainer.classList.remove('hidden');
+                    if(cropper) {
+                        cropper.destroy();
+                    }
+                    cropper = new Cropper(imageToCrop, {
+                        aspectRatio: 1,
+                        viewMode: 1,
+                        background: false,
+                        responsive: true,
+                        autoCropArea: 0.8,
+                        zoomable: true,
+                    });
+                };
+                reader.readAsDataURL(files[0]);
+                document.getElementById('imageError').classList.add('hidden');
+            }
+        });
+        
+        function updateStepIndicator(step) {
+            document.querySelectorAll('.step-indicator').forEach((indicator, index) => {
+                const div = indicator.querySelector('div');
+                const p = indicator.querySelector('p');
+                if ((index + 1) < step) {
+                    div.classList.remove('bg-gray-300', 'bg-blue-500');
+                    div.classList.add('bg-green-500', 'text-white');
+                    p.classList.remove('text-gray-500');
+                    p.classList.add('font-semibold');
+                } else if ((index + 1) === step) {
+                    div.classList.remove('bg-gray-300', 'bg-green-500');
+                    div.classList.add('bg-blue-500', 'text-white');
+                    p.classList.remove('text-gray-500');
+                    p.classList.add('font-semibold');
+                } else {
+                    div.classList.remove('bg-blue-500', 'bg-green-500', 'text-white');
+                    div.classList.add('bg-gray-300');
+                    p.classList.remove('font-semibold');
+                    p.classList.add('text-gray-500');
+                }
+            });
+             const indicators = document.querySelectorAll('.step-indicator');
+             for (let i = 0; i < indicators.length -1; i++) {
+                const line = indicators[i].nextElementSibling;
+                if(i < step -1) {
+                    line.classList.remove('border-gray-300');
+                    line.classList.add('border-green-500');
+                } else {
+                     line.classList.remove('border-green-500');
+                    line.classList.add('border-gray-300');
+                }
+             }
+
+        }
+
+        function validateStep1() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const fullNameError = document.getElementById('fullNameError');
+            if (fullName === '') {
+                fullNameError.classList.remove('hidden');
+                return false;
+            }
+            fullNameError.classList.add('hidden');
+            formData.fullName = fullName;
+            formData.membershipStatus = document.getElementById('membershipStatus').value;
+            return true;
+        }
+
+        function validateStep2() {
+             const imageError = document.getElementById('imageError');
+            if (!imageInput.files || imageInput.files.length === 0) {
+                imageError.classList.remove('hidden');
+                return false;
+            }
+            imageError.classList.add('hidden');
+            return true;
+        }
+
+        function nextStep(step) {
+            if (step === 1 && !validateStep1()) return;
+            if (step === 2 && !validateStep2()) return;
+            
+            if (step === 2) {
+                prepareConfirmation();
+            }
+
+            document.getElementById(`step-${step}`).classList.remove('active');
+            currentStep++;
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+            updateStepIndicator(currentStep);
+        }
+
+        function prevStep(step) {
+            document.getElementById(`step-${step}`).classList.remove('active');
+            currentStep--;
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+            updateStepIndicator(currentStep);
+        }
+
+        function prepareConfirmation() {
+            // Display confirmation details
+            document.getElementById('confirmName').textContent = formData.fullName;
+            document.getElementById('confirmStatus').textContent = formData.membershipStatus;
+            
+            // Generate unique ID (simple timestamp for uniqueness)
+            const uniqueId = Date.now().toString().slice(-6);
+            
+            // Format filename: John_Smith_123456.jpg
+            const filename = `${formData.fullName.replace(/\s+/g, '_')}_${uniqueId}.jpg`;
+            document.getElementById('confirmFilename').textContent = filename;
+
+            // Get cropped canvas
+            const canvas = cropper.getCroppedCanvas({
+                width: 512,
+                height: 512,
+                imageSmoothingQuality: 'high',
+            });
+            
+            // Show preview
+            const preview = document.getElementById('preview');
+            preview.innerHTML = '';
+            const previewImg = document.createElement('img');
+            previewImg.src = canvas.toDataURL('image/jpeg');
+            previewImg.className = 'w-full h-full object-cover rounded-md';
+            preview.appendChild(previewImg);
+
+
+            // Set download button
+            const downloadButton = document.getElementById('downloadButton');
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                downloadButton.href = url;
+                downloadButton.download = filename;
+            }, 'image/jpeg');
+        }
+
+        function startOver() {
+            // Reset form fields individually instead of using .reset() on a div
+            document.getElementById('fullName').value = '';
+            document.getElementById('membershipStatus').selectedIndex = 0;
+            document.getElementById('imageInput').value = '';
+
+            if(cropper) cropper.destroy();
+            cropperContainer.classList.add('hidden');
+            document.getElementById('preview').innerHTML = '';
+            document.getElementById('fullNameError').classList.add('hidden');
+            document.getElementById('imageError').classList.add('hidden');
+
+
+            document.getElementById(`step-3`).classList.remove('active');
+            currentStep = 1;
+            document.getElementById(`step-1`).classList.add('active');
+            updateStepIndicator(currentStep);
+        }
+    </script>
+</body>
+</html>
+
